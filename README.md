@@ -23,9 +23,9 @@ tgmailing \
   --chats-file        input_examples/chats.lines \
   --bots-file         input_examples/bots.lines \
   --service-chat      -598317757 \
-  --notification-chat -598317757
+  --notification-chat -598317757 \
   --start-notification \
-  --finish-notification \
+  --finish-notification
 ```
 
 ## Help
