@@ -1,0 +1,8 @@
+{
+	"message": {
+		"message_type": "text",
+		"interval": 0.1,
+		"test": false,
+		"text": "Some <b>text</b>"
+	}
+}
