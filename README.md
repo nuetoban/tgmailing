@@ -30,6 +30,14 @@ tgmailing \
   --finish-notification
 ```
 
+## Advice: fill chats list
+
+If you want to get all chats for your bot and you use, for example, PostgreSQL with table `chats`,
+which contain a column `id`, you can fill `chats.lines` file via following psql command:
+```bash
+psql -U postgres -t -c "SELECT id FROM chats" > input_examples/chats.lines
+```
+
 ## Help
 ```
 usage: tgmailing [-h|--help] [--ad-src (JSONFILE)] [--bots-src (ENV|LINESFILE)]
