@@ -1,18 +1,22 @@
 package dto
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
+
+	"database/sql/driver"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type Bot struct {
-	ID    int    `json:"id"`
-	Token string `json:"token"`
+	ID    int    `json:"id" db:"id"`
+	Token string `json:"token" db:"token"`
 }
 
 type Chat struct {
-	ID int64 `json:"id"`
+	ID int64 `json:"id" db:"id"`
 }
 
 type Ad struct {
@@ -29,6 +33,18 @@ func NewAd() Ad {
 	a := Ad{}
 	a.Interval = 0.1
 	return a
+}
+
+func (a Ad) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *Ad) Scan(value interface{}) error {
+	v, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("wrong type")
+	}
+	return json.Unmarshal(v, a)
 }
 
 type ScheduledAd struct {

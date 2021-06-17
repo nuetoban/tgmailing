@@ -7,10 +7,13 @@ import (
 	"os"
 
 	"github.com/akamensky/argparse"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 
 	"github.com/nuetoban/tgmailing/input/envsrc"
 	"github.com/nuetoban/tgmailing/input/jsonsrc"
 	"github.com/nuetoban/tgmailing/input/linesfile"
+	"github.com/nuetoban/tgmailing/input/postgresrc"
 	"github.com/nuetoban/tgmailing/sending"
 	"github.com/nuetoban/tgmailing/view"
 )
@@ -19,6 +22,7 @@ const (
 	JSONSRC      = "JSONFILE"
 	LINESFILESRC = "LINESFILE"
 	ENVSRC       = "ENV"
+	SQLSRC       = "SQL"
 )
 
 func main() {
@@ -27,9 +31,9 @@ func main() {
 	N := ""
 
 	// Define args
-	adSrc := parser.Selector(N, "ad-src", []string{JSONSRC}, &argparse.Options{Default: JSONSRC, Help: "Ad source"})
-	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
-	chatSrc := parser.Selector(N, "chats-src", []string{LINESFILESRC}, &argparse.Options{Default: LINESFILESRC, Help: "Chats source"})
+	adSrc := parser.Selector(N, "ad-src", []string{JSONSRC, SQLSRC}, &argparse.Options{Default: JSONSRC, Help: "Ad source"})
+	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC, SQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
+	chatSrc := parser.Selector(N, "chats-src", []string{LINESFILESRC, SQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Chats source"})
 	file := parser.String(N, "ad-file", &argparse.Options{Help: "Path to Ad file"})
 	botsFile := parser.String(N, "bots-file", &argparse.Options{Help: "Path to bots file"})
 	chatsFile := parser.String(N, "chats-file", &argparse.Options{Help: "Path to chats file"})
@@ -40,6 +44,9 @@ func main() {
 	enableFinishEachNotification := parser.Flag(N, "each-finish-notification", &argparse.Options{Help: "Send message to chat on finish for each bot"})
 	notificationChat := parser.Int(N, "notification-chat", &argparse.Options{Help: "Chat to send notifications"})
 	serviceChat := parser.Int("s", "service-chat", &argparse.Options{Help: "Chat to send files", Required: true})
+	botsQuery := parser.String(N, "bots-query", &argparse.Options{Help: "SQL query to fetch Bots"})
+	chatsQuery := parser.String(N, "chats-query", &argparse.Options{Help: "SQL query to fetch Chats"})
+	postQuery := parser.String(N, "ad-query", &argparse.Options{Help: "SQL query to fetch Ad post"})
 
 	// Parse input
 	err := parser.Parse(os.Args)
@@ -69,6 +76,21 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+	case SQLSRC:
+		if postQuery == nil || *postQuery == "" {
+			fmt.Println("The argument --ad-query should be used with this Ad source")
+			return
+		}
+
+		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		ad, err = postgresrc.New(db, postgresrc.Config{PostSelectQuery: *postQuery})
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	// Set chats source
@@ -83,6 +105,21 @@ func main() {
 			log.Fatalln(err)
 		}
 		chat, err = linesfile.New(cf)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	case SQLSRC:
+		if chatsQuery == nil || *chatsQuery == "" {
+			fmt.Println("The argument --chats-query should be used with this Bots source")
+			return
+		}
+
+		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		chat, err = postgresrc.New(db, postgresrc.Config{ChatsSelectQuery: *chatsQuery})
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -105,6 +142,21 @@ func main() {
 			log.Fatalln(err)
 		}
 		bots, err = linesfile.New(bf)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	case SQLSRC:
+		if botsQuery == nil || *botsQuery == "" {
+			fmt.Println("The argument --bots-query should be used with this Bots source")
+			return
+		}
+
+		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		bots, err = postgresrc.New(db, postgresrc.Config{BotsSelectQuery: *botsQuery})
 		if err != nil {
 			log.Fatalln(err)
 		}
