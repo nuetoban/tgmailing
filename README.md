@@ -4,7 +4,9 @@ To run this program you should have:
 1. Ad post.
 2. List of bots.
 3. List of chats which will recieve the post.
-4. Service chat which contain all specified bots. It's needed if you send post with media.
+4. Service chat which contain all specified bots.
+   All the bots should be presented in this chat.
+   It's needed if you send post with media.
 5. A chat which will recieve service notifications (mailing start/finish, etc.). Not required
    unless you use `--start-notification`, `--finish-notification`, `--each-finish-notification` flags.
 
