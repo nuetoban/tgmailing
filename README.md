@@ -1,4 +1,8 @@
-# Requirements
+# tgmailing
+
+✉️ **tgmailing** is a tool which can help you with sending notifications to users of your Telegram Bot.
+
+## Requirements
 
 To run this program you should have:
 1. Ad post.
@@ -10,12 +14,12 @@ To run this program you should have:
 5. A chat which will recieve service notifications (mailing start/finish, etc.). Not required
    unless you use `--start-notification`, `--finish-notification`, `--each-finish-notification` flags.
 
-# Installation
+## Installation
 ```bash
 go install github.com/nuetoban/tgmailing
 ```
 
-# Usage
+## Usage
 
 The following example will take chats from `input_examples/chats.lines` file,
 ad post from `input_examples/example.json` and bots from `input_examples/bots.lines`.
@@ -30,7 +34,7 @@ tgmailing \
   --finish-notification
 ```
 
-## Advice: fill chats list
+### Advice: fill chats list
 
 If you want to get all chats for your bot and you use, for example, PostgreSQL with table `chats`,
 which contain a column `id`, you can fill `chats.lines` file via following psql command:
@@ -38,7 +42,7 @@ which contain a column `id`, you can fill `chats.lines` file via following psql 
 psql -U postgres -t -c "SELECT id FROM chats" > input_examples/chats.lines
 ```
 
-## Help
+### Help
 ```
 usage: tgmailing [-h|--help] [--ad-src (JSONFILE)] [--bots-src (ENV|LINESFILE)]
                  [--chats-src (LINESFILE)] [--ad-file "<value>"] [--bots-file
