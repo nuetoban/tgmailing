@@ -83,13 +83,22 @@ func TestGetScheduledAd(t *testing.T) {
 		return
 	}
 
-	ad, err := p.GetScheduledAd(0, 0, 0)
+	ad, err := p.GetScheduledAd(2020, 6, 25)
 	if err != nil {
 		t.Errorf("GetBots() returned error: %v", err)
 		return
 	}
 
-	expected := dto.ScheduledAd{}
+	expected := dto.ScheduledAd{
+		Year:  2020,
+		Month: 6,
+		Day:   25,
+		Message: dto.Ad{
+			MessageType: "text",
+			Text:        "Some <b>text</b>",
+			Interval:    0.1,
+		},
+	}
 
 	if !cmp.Equal(ad, expected) {
 		t.Errorf("TestGetScheduledAd() returned wrong value: %v, expected: %v", ad, expected)
@@ -111,7 +120,7 @@ func TestMain(m *testing.M) {
 
 	db.MustExec("CREATE TABLE ads (year INTEGER, month INTEGER, day INTEGER, message JSON)")
 	db.MustExec(`INSERT INTO ads (year, month, day, message) VALUES
-		(0, 0, 0, '{"message": {"test": false, "text": "Some <b>text</b>", "interval": 0.1, "message_type": "text"}}')`)
+		(2020, 6, 25, '{"test": false, "text": "Some <b>text</b>", "interval": 0.1, "message_type": "text"}')`)
 
 	m.Run()
 }
