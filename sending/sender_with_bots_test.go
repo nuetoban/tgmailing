@@ -4,9 +4,14 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/joho/godotenv"
 )
 
 func TestRun(t *testing.T) {
+	godotenv.Load(".env")
+	godotenv.Load("../.env")
+
 	dp := &dataProvider{}
 	sad := getDefaultAd()
 	sad.Message.MessageType = "text"

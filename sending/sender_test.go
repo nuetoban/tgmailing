@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/nuetoban/tgmailing/dto"
 
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -156,4 +157,11 @@ func TestNewAnimation(t *testing.T) {
 	sad := getDefaultAd()
 	sad.Message.MessageType = "animation"
 	testMessage(sad, t, "testdata/test_animation.mp4")
+}
+
+func TestMain(m *testing.M) {
+	godotenv.Load(".env")
+	godotenv.Load("../.env")
+
+	m.Run()
 }

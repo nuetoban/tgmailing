@@ -34,6 +34,20 @@ tgmailing \
   --finish-notification
 ```
 
+### PostgreSQL
+If you have PostgreSQL, you can use `PGSQL` input source.
+```bash
+tgmailing \
+  --chats-src         PGSQL \
+  --chats-query       'SELECT id FROM chats' \
+  --ad-file           input_examples/example.json \
+  --bots-file         input_examples/bots.lines \
+  --service-chat      -598317757 \
+  --notification-chat -598317757 \
+  --start-notification \
+  --finish-notification
+```
+
 ### Advice: fill chats list
 
 If you want to get all chats for your bot and you use, for example, PostgreSQL with table `chats`,
@@ -44,12 +58,16 @@ psql -U postgres -t -c "SELECT id FROM chats" > input_examples/chats.lines
 
 ### Help
 ```
-usage: tgmailing [-h|--help] [--ad-src (JSONFILE)] [--bots-src (ENV|LINESFILE)]
-                 [--chats-src (LINESFILE)] [--ad-file "<value>"] [--bots-file
-                 "<value>"] [--chats-file "<value>"] [--no-server]
-                 [-m|--metrics-port <integer>] [-n|--start-notification]
-                 [-f|--finish-notification] [--each-finish-notification]
-                 [--notification-chat <integer>] -s|--service-chat <integer>
+usage: tgmailing [-h|--help] [--ad-src (JSONFILE|PGSQL)] [--bots-src
+                 (ENV|LINESFILE|PGSQL)] [--chats-src (LINESFILE|PGSQL)]
+                 [--ad-file "<value>"] [--bots-file "<value>"] [--chats-file
+                 "<value>"] [--bots-query "<value>"] [--chats-query "<value>"]
+                 [--ad-query "<value>"] [--bots-db-env-prefix "<value>"]
+                 [--chats-db-env-prefix "<value>"] [--ad-db-env-prefix
+                 "<value>"] [--no-server] [-m|--metrics-port <integer>]
+                 [-n|--start-notification] [-f|--finish-notification]
+                 [--each-finish-notification] [--notification-chat <integer>]
+                 -s|--service-chat <integer>
 
                  Sends post to Telegram chats via Bots
 
@@ -62,6 +80,15 @@ Arguments:
       --ad-file                   Path to Ad file
       --bots-file                 Path to bots file
       --chats-file                Path to chats file
+      --bots-query                SQL query to fetch Bots
+      --chats-query               SQL query to fetch Chats
+      --ad-query                  SQL query to fetch Ad post
+      --bots-db-env-prefix        Prefix for DB env credentials for Bots.
+                                  Default: SENDER_
+      --chats-db-env-prefix       Prefix for DB env credentials for Chats.
+                                  Default: SENDER_
+      --ad-db-env-prefix          Prefix for DB env credentials for Ad post.
+                                  Default: SENDER_
       --no-server                 Disable metrics server
   -m  --metrics-port              Metrics server port. Default: 9090
   -n  --start-notification        Send message to chat on start
