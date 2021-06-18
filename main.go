@@ -7,13 +7,13 @@ import (
 	"os"
 
 	"github.com/akamensky/argparse"
-	"github.com/jmoiron/sqlx"
+	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 
 	"github.com/nuetoban/tgmailing/input/envsrc"
 	"github.com/nuetoban/tgmailing/input/jsonsrc"
 	"github.com/nuetoban/tgmailing/input/linesfile"
-	"github.com/nuetoban/tgmailing/input/postgresrc"
+	"github.com/nuetoban/tgmailing/input/sqlsrc"
 	"github.com/nuetoban/tgmailing/sending"
 	"github.com/nuetoban/tgmailing/view"
 )
@@ -22,7 +22,7 @@ const (
 	JSONSRC      = "JSONFILE"
 	LINESFILESRC = "LINESFILE"
 	ENVSRC       = "ENV"
-	SQLSRC       = "SQL"
+	PGSQLSRC     = "PGSQL"
 )
 
 func main() {
@@ -31,12 +31,27 @@ func main() {
 	N := ""
 
 	// Define args
-	adSrc := parser.Selector(N, "ad-src", []string{JSONSRC, SQLSRC}, &argparse.Options{Default: JSONSRC, Help: "Ad source"})
-	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC, SQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
-	chatSrc := parser.Selector(N, "chats-src", []string{LINESFILESRC, SQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Chats source"})
+	// Input sources
+	adSrc := parser.Selector(N, "ad-src", []string{JSONSRC, PGSQLSRC}, &argparse.Options{Default: JSONSRC, Help: "Ad source"})
+	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC, PGSQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
+	chatSrc := parser.Selector(N, "chats-src", []string{LINESFILESRC, PGSQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Chats source"})
+
+	// Files
 	file := parser.String(N, "ad-file", &argparse.Options{Help: "Path to Ad file"})
 	botsFile := parser.String(N, "bots-file", &argparse.Options{Help: "Path to bots file"})
 	chatsFile := parser.String(N, "chats-file", &argparse.Options{Help: "Path to chats file"})
+
+	// Queries
+	botsQuery := parser.String(N, "bots-query", &argparse.Options{Help: "SQL query to fetch Bots"})
+	chatsQuery := parser.String(N, "chats-query", &argparse.Options{Help: "SQL query to fetch Chats"})
+	postQuery := parser.String(N, "ad-query", &argparse.Options{Help: "SQL query to fetch Ad post"})
+
+	// Env prefixes
+	botsEnvPrefix := parser.String(N, "bots-db-env-prefix", &argparse.Options{Help: "Prefix for DB env credentials for Bots", Default: "SENDER_"})
+	chatsEnvPrefix := parser.String(N, "chats-db-env-prefix", &argparse.Options{Help: "Prefix for DB env credentials for Chats", Default: "SENDER_"})
+	postEnvPrefix := parser.String(N, "ad-db-env-prefix", &argparse.Options{Help: "Prefix for DB env credentials for Ad post", Default: "SENDER_"})
+
+	// Flags/chats
 	noServer := parser.Flag(N, "no-server", &argparse.Options{Help: "Disable metrics server"})
 	metricsPort := parser.Int("m", "metrics-port", &argparse.Options{Help: "Metrics server port", Default: 9090})
 	enableStartNotification := parser.Flag("n", "start-notification", &argparse.Options{Help: "Send message to chat on start"})
@@ -44,9 +59,6 @@ func main() {
 	enableFinishEachNotification := parser.Flag(N, "each-finish-notification", &argparse.Options{Help: "Send message to chat on finish for each bot"})
 	notificationChat := parser.Int(N, "notification-chat", &argparse.Options{Help: "Chat to send notifications"})
 	serviceChat := parser.Int("s", "service-chat", &argparse.Options{Help: "Chat to send files", Required: true})
-	botsQuery := parser.String(N, "bots-query", &argparse.Options{Help: "SQL query to fetch Bots"})
-	chatsQuery := parser.String(N, "chats-query", &argparse.Options{Help: "SQL query to fetch Chats"})
-	postQuery := parser.String(N, "ad-query", &argparse.Options{Help: "SQL query to fetch Ad post"})
 
 	// Parse input
 	err := parser.Parse(os.Args)
@@ -76,18 +88,13 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-	case SQLSRC:
+	case PGSQLSRC:
 		if postQuery == nil || *postQuery == "" {
 			fmt.Println("The argument --ad-query should be used with this Ad source")
 			return
 		}
 
-		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		ad, err = postgresrc.New(db, postgresrc.Config{PostSelectQuery: *postQuery})
+		ad, err = sqlsrc.NewPostgreSQL(sqlsrc.Config{PostSelectQuery: *postQuery}, false, *postEnvPrefix)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -108,18 +115,13 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-	case SQLSRC:
+	case PGSQLSRC:
 		if chatsQuery == nil || *chatsQuery == "" {
 			fmt.Println("The argument --chats-query should be used with this Bots source")
 			return
 		}
 
-		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		chat, err = postgresrc.New(db, postgresrc.Config{ChatsSelectQuery: *chatsQuery})
+		chat, err = sqlsrc.NewPostgreSQL(sqlsrc.Config{ChatsSelectQuery: *chatsQuery}, false, *chatsEnvPrefix)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -145,18 +147,13 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-	case SQLSRC:
+	case PGSQLSRC:
 		if botsQuery == nil || *botsQuery == "" {
 			fmt.Println("The argument --bots-query should be used with this Bots source")
 			return
 		}
 
-		db, err := sqlx.Connect("postgres", "user=postgres dbname=postgres sslmode=disable password=password")
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		bots, err = postgresrc.New(db, postgresrc.Config{BotsSelectQuery: *botsQuery})
+		bots, err = sqlsrc.NewPostgreSQL(sqlsrc.Config{BotsSelectQuery: *botsQuery}, false, *botsEnvPrefix)
 		if err != nil {
 			log.Fatalln(err)
 		}

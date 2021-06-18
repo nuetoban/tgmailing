@@ -40,11 +40,14 @@ func (a Ad) Value() (driver.Value, error) {
 }
 
 func (a *Ad) Scan(value interface{}) error {
-	v, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("wrong type")
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, a)
+	case string:
+		return json.Unmarshal([]byte(v), a)
+	default:
+		return fmt.Errorf("wrong type: %T", value)
 	}
-	return json.Unmarshal(v, a)
 }
 
 type ScheduledAd struct {
