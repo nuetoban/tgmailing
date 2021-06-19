@@ -24,3 +24,14 @@ install:
 .PHONY: tidy
 tidy:
 	go mod tidy
+
+.PHONY: docker/build
+docker/build:
+	docker build -t nuetoban/tgmailing .
+
+.PHONY: docker/push
+docker/push:
+	docker push nuetoban/tgmailing
+
+.PHONY: docker/build/push
+docker/build/push: docker/build docker/push
