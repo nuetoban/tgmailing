@@ -83,7 +83,7 @@ func NotifyDevChatOnFinish(chatID int64) func(*SenderWithBots) {
 				&tb.Chat{ID: chatID},
 				fmt.Sprintf(
 					"The mailing for all bots has been finished!\n\n💚 %d\n💔 %d",
-					totalFailed,
+					totalSuccessful,
 					totalFailed,
 				),
 				tb.ModeHTML,
