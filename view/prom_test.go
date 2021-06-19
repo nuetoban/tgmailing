@@ -55,11 +55,11 @@ func (f *FakeHTTPResponceWriter) WriteHeader(i int) {
 
 func TestPromStatisticsHTTP(t *testing.T) {
 	shouldContain := []string{
-		"start_time{mailing_id=123456789123456789} 1593108000",
-		"successful_send_attemts{bot_id=1,bot_name=bot1,mailing_id=123456789123456789} 400",
-		"failed_send_attemts{bot_id=1,bot_name=bot1,mailing_id=123456789123456789} 666",
-		"successful_send_attemts{bot_id=2,bot_name=bot2,mailing_id=123456789123456789} 777",
-		"failed_send_attemts{bot_id=2,bot_name=bot2,mailing_id=123456789123456789} 555",
+		`start_time{mailing_id="123456789123456789"} 1593108000`,
+		`successful_send_attemts{bot_id="1",bot_name="bot1",mailing_id="123456789123456789"} 400`,
+		`failed_send_attemts{bot_id="1",bot_name="bot1",mailing_id="123456789123456789"} 666`,
+		`successful_send_attemts{bot_id="2",bot_name="bot2",mailing_id="123456789123456789"} 777`,
+		`failed_send_attemts{bot_id="2",bot_name="bot2",mailing_id="123456789123456789"} 555`,
 	}
 
 	pp := &FakeStatsProvider{}

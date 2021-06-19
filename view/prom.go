@@ -28,7 +28,7 @@ func (l labels) String() string {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		fields = append(fields, fmt.Sprintf("%s=%v", k, l[k]))
+		fields = append(fields, fmt.Sprintf("%s=\"%v\"", k, l[k]))
 	}
 
 	out.WriteString(strings.Join(fields, ","))
