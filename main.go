@@ -33,7 +33,7 @@ func main() {
 	// Define args
 	// Input sources
 	adSrc := parser.Selector(N, "ad-src", []string{JSONSRC, PGSQLSRC}, &argparse.Options{Default: JSONSRC, Help: "Ad source"})
-	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC, PGSQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
+	botsSrc := parser.Selector(N, "bots-src", []string{ENVSRC, LINESFILESRC, JSONSRC, PGSQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Bots source"})
 	chatSrc := parser.Selector(N, "chats-src", []string{LINESFILESRC, PGSQLSRC}, &argparse.Options{Default: LINESFILESRC, Help: "Chats source"})
 
 	// Files
@@ -154,6 +154,19 @@ func main() {
 		}
 
 		bots, err = sqlsrc.NewPostgreSQL(sqlsrc.Config{BotsSelectQuery: *botsQuery}, false, *botsEnvPrefix)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	case JSONSRC:
+		if botsFile == nil || *botsFile == "" {
+			fmt.Println("The argument --bots-file should be used with this Bots source")
+			return
+		}
+		af, err := os.Open(*botsFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		bots, err = jsonsrc.New(af)
 		if err != nil {
 			log.Fatalln(err)
 		}
